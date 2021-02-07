@@ -128,10 +128,10 @@ function progress(val) {
 				// set(i);
 			})();
 			
-			await (timeout(250));
+			await (timeout(200));
 		}
 		
-		setInterval(() => {
+		var printer = setInterval(async(() => {
 			console.clear();
 			var totalbytes = '';
 			for(di in downloader) {
@@ -143,16 +143,28 @@ function progress(val) {
 				
 				print((di < 10 ? ' ' : '') + di + '번 다운로더: ' + progress(pc) + ' (' + Math.floor(pc) + '%) ' + totals[di] + ' 중 ' + len + ' 바이트');
 			}
+			
 			if(comp >= trd) {
-				var ret = Buffer.from('');
-				for(di in downloader) {
-					Buffer.concat(downloader[di])
-					ret = Buffer.concat([ret, Buffer.concat(downloader[di])]);
+				clearInterval(printer);
+				
+				if(fs.existsSync('./' + fn)) {
+					var _fn = await (input('화일이 이미 있습니다. 바로 [Enter]를 눌러 덮어쓰거나 새로운 화일명을 입력하십시오.\n> '));
+					if(_fn) fn = _fn;
 				}
-				fs.writeFileSync('./' + fn, ret.toString('base64'), 'base64');
+				fs.writeFileSync('./' + fn, '');
+				// var ret = Buffer.from('');
+				for(di in downloader) {
+					for(f of downloader[di]) {
+						fs.appendFileSync('./' + fn, f, 'binary');
+						await (timeout(10));
+					}
+					// Buffer.concat(downloader[di])
+					// ret = Buffer.concat([ret, Buffer.concat(downloader[di])]);
+				}
+				// fs.writeFileSync('./' + fn, ret.toString('base64'), 'base64');
 				process.exit(0);
 			}
-		}, 1000);
+		}), 1000);
 	})).end();
 }))();
 
